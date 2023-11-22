@@ -1,0 +1,40 @@
+
+- name: Local git provision
+  hosts: localhost
+  connection: local
+  vars:
+    - git_username:  # USER.NAME
+    - git_useremail:  # USER.EMAIL
+  tasks:
+    - name: Run apt upgrade
+      apt:
+        upgrade: "yes"
+        update_cache: yes
+        cache_valid_time: 432000
+      become: yes
+
+    - name: Install git package (apt)
+      apt:
+        pkg:
+          - git
+        update_cache: yes
+        state: present
+      become: yes
+
+    - name: Get git config username
+      shell: git config --global user.name
+      register: git_config_username
+      ignore_errors: yes
+
+    - name: Set git config user.name
+      shell: "git config --global user.name '{{ git_username }}'"
+      when: git_config_username.stdout.find(git_username) != 0
+
+    - name: Get git config user.email
+      shell: git config --global user.email
+      register: git_config_useremail
+      ignore_errors: yes
+
+    - name: Set git config user.email
+      shell: "git config --global user.email {{ git_useremail }}"
+      when: git_config_useremail.stdout.find(git_useremail) != 0
